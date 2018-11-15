@@ -1,0 +1,33 @@
+#Load Libraries
+library(tidyverse)
+library(SnowballC)
+library(wordcloud)
+library(MASS)
+library(caTools)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(caret)
+library(ranger)
+library(ROCR)
+library(yardstick)
+library(stringr)
+library(softImpute)
+library(reshape2)
+library(glmnet)
+library(pls)
+library(leaps)
+
+# Helper Functions
+OSR2 <- function(predictions, train, test) {
+  SSE <- sum((test - predictions)^2)
+  SST <- sum((test - mean(train))^2)
+  r2 <- 1 - SSE/SST
+  return(r2)
+}
+  
+#Load the Datasets
+ratings = read.csv("MusicRatings.csv")
+songs = read.csv("Songs.csv")
+users = read.csv("Users.csv")

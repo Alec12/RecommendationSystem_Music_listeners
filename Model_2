@@ -1,0 +1,35 @@
+# linear model without CF
+lin.mod <- lm(rating ~ . -songID -userID, data = train)
+summary(lin.mod)
+
+preds.lm <- predict(lin.mod, newdata = newtest) %>% pmin(3.433) %>% pmax(1)
+mean(abs(preds.lm - newtest$rating))/(3.433-1)
+sqrt(mean((preds.lm - newtest$rating)^2))/(3.433-1)
+OSR2(preds.lm, train$rating, newtest$rating)
+
+# Blending Model
+val.preds.cf <- impute(mod.final, val_b$userID, val_b$songID)
+val.preds.lm <- predict(lin.mod, newdata = val_b)
+
+
+# Build validation set data frame
+val.blending_df = data.frame(rating = val_b$rating, cf_preds = val.preds.cf, 
+                             lm_preds = val.preds.lm)
+
+# Train blended model
+blend.mod = lm(rating ~ . -1, data = val.blending_df)
+summary(blend.mod)
+
+# Get predictions on test set
+test.preds.cf <- impute(mod.final, newtest$userID, newtest$songID)
+test.preds.lm <- predict(lin.mod, newdata = newtest)
+
+
+test.blending_df = data.frame(rating = newtest$rating, cf_preds = test.preds.cf, 
+                              lm_preds = test.preds.lm)
+
+test.preds.blend <- predict(blend.mod, newdata = test.blending_df)
+
+mean(abs(test.preds.blend - newtest$rating))/(3.433-1)
+sqrt(mean((test.preds.blend - newtest$rating)^2))/(3.433-1)
+OSR2(test.preds.blend, train$rating, newtest$rating)

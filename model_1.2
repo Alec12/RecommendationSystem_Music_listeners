@@ -1,0 +1,22 @@
+set.seed(790)
+mae.vals = rep(NA, 20)
+for (rnk in seq_len(20)) {
+  print(str_c("Trying rank.max = ", rnk))
+  mod <- softImpute(matrix.train.centered, rank.max = rnk, lambda = 0, maxit = 1000)
+  preds <- impute(mod, val_a$userID, val_a$songID) %>% pmin(3.433) %>% pmax(1)
+  mae.vals[rnk] <- mean(abs(preds - val_a$rating))
+}
+mae = mae.vals
+mae.val.df <- data.frame(rnk = seq_len(20), mae)
+ggplot(mae.val.df, aes(x = rnk, y = mae)) + geom_point(size = 3) + 
+  ylab("Validation MAE") + xlab("Number of Archetypal Users") + 
+  theme_bw() + theme(axis.title=element_text(size=18), axis.text=element_text(size=18))
+
+# choose k = 6
+set.seed(100)
+mod.final <- softImpute(matrix.train.centered, rank.max = 5, lambda = 0, maxit = 1000)
+preds <- impute(mod.final, test$userID, test$songID) %>% pmin(3.433) %>% pmax(1)
+
+mean(abs(preds - test$rating))/(3.433-1) 
+sqrt(mean((preds - test$rating)^2))/(3.433-1) 
+OSR2(preds, train$rating, test$rating) 

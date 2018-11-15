@@ -1,3 +1,4 @@
+#Collaborative Filtering
 set.seed(791)
 
 train.ids <- sample(nrow(ratings), 0.92*nrow(ratings))

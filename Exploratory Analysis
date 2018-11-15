@@ -1,0 +1,14 @@
+#How many songs are in the dataset
+as_tibble(songs)
+length(unique(songs$songName))
+length(songs$songID) 
+
+#How many users
+as_tibble(users)
+length(users$userID)
+
+#Range of values that the ratings take on
+as_tibble(ratings)
+summary(ratings$rating) 
+
+

@@ -1,0 +1,51 @@
+set.seed(791)
+
+train.ids <- sample(nrow(ratings), 0.92*nrow(ratings))
+train <- ratings[train.ids,]
+test <- ratings[-train.ids,]
+
+val.ids <- sample(nrow(train), (8/92)*nrow(train))
+val_a <- train[val.ids,]
+train <- train[-val.ids,]
+
+val.ids2 <- sample(nrow(val_a), (50/100)*nrow(val_a))
+val_a <- train[val.ids2,]
+val_b <- train[-val.ids2,]
+
+# use incomplete function to construct an incomplete training set ratings matrix
+matrix.train <- Incomplete(train$userID, train$songID, train$rating)
+
+
+set.seed(3421)
+matrix.train.centered <- biScale(matrix.train, maxit = 1000, row.scale = FALSE, col.scale = FALSE)
+
+alpha <- attr(matrix.train.centered, "biScale:row")$center
+beta <- attr(matrix.train.centered, "biScale:column")$center
+
+users$alpha <- alpha
+songs$beta <- beta
+
+
+
+# Find the top 3 songs
+songs %>% group_by(songID, songName, artist, beta) %>%
+  arrange(desc(beta))
+
+# 3 users that are most enthused about songs after removing bias
+users %>% group_by(userID, alpha) %>%
+  arrange(desc(alpha))
+
+
+
+#merge datasets
+newtest <- inner_join(songs, test, by = "songID")
+newtest <- inner_join(users, newtest, by = "userID")
+
+#new column
+newtest$y <- newtest$alpha + newtest$beta
+
+#Out-of-Sample Performance: MAE, RMSE, OSR2
+mean(abs(newtest$y - newtest$rating))/(3.433-1) 
+sqrt(mean((newtest$y - newtest$rating)^2))/(3.433-1) 
+OSR2(newtest$y, train$rating, newtest$rating) 
+
